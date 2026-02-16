@@ -157,6 +157,22 @@ Run the test suite:
 yarn test
 ```
 
+#### Testing Cetus Integration
+
+To test the Cetus protocol integration with real network data:
+
+```bash
+# Quick automated test
+export JSON_RPC_ENDPOINT=https://fullnode.testnet.sui.io:443
+yarn test cetus.integration.spec.ts
+
+# Detailed manual test
+yarn build
+node scripts/test-cetus-integration.js testnet
+```
+
+For comprehensive testing instructions, see [TESTING_CETUS.md](./TESTING_CETUS.md)
+
 ## Key Concepts
 
 ### Price Range Strategy
