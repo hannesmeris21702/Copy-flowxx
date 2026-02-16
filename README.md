@@ -157,6 +157,22 @@ Run the test suite:
 yarn test
 ```
 
+#### Testing Cetus Integration
+
+To test the Cetus protocol integration with real network data:
+
+```bash
+# Quick automated test
+export JSON_RPC_ENDPOINT=https://fullnode.testnet.sui.io:443
+yarn test cetus.integration.spec.ts
+
+# Detailed manual test
+yarn build
+node scripts/test-cetus-integration.js testnet
+```
+
+For comprehensive testing instructions, see [TESTING_CETUS.md](./TESTING_CETUS.md)
+
 ## Key Concepts
 
 ### Price Range Strategy
@@ -187,11 +203,46 @@ The bot can automatically compound rewards based on:
 
 ## Supported Protocols
 
+### Fully Integrated
+
 - **FlowX V3**: Next-generation AMM with concentrated liquidity
+  - Full position management support
+  - Automated rebalancing and reward compounding
+  
 - **Cetus**: Leading DEX on Sui with advanced trading features
+  - Full CLMM (Concentrated Liquidity Market Maker) support
+  - Position creation, liquidity management, and fee collection
+  - Compatible with Cetus mainnet pools
+  - Find pools at: https://app.cetus.zone/
+
+### Planned Support
+
 - **Turbos Finance**: High-performance DeFi protocol
 - **Bluefin**: Derivatives and spot trading platform
 - **Magma Finance**: Innovative liquidity solutions
+
+## Protocol-Specific Configuration
+
+### Using Cetus Protocol
+
+To use the bot with Cetus pools, set the following in your `.env`:
+
+```env
+PROTOCOL=CETUS
+TARGET_POOL=<your_cetus_pool_id>
+```
+
+Find Cetus pool IDs:
+1. Visit https://app.cetus.zone/
+2. Navigate to the "Pools" section
+3. Select your desired pool
+4. Copy the pool address from the URL or pool details
+
+The bot will automatically use the correct Cetus smart contract interactions for:
+- Opening and closing positions
+- Adding/removing liquidity
+- Collecting fees and rewards
+- Rebalancing positions based on price movements
 
 ## Monitoring and Logging
 

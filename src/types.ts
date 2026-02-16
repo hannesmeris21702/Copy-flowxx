@@ -140,3 +140,36 @@ export type CollectRewardsOptions = {
   rewardCoin: Coin;
   requestedAmount?: BigintIsh;
 };
+
+export type CetusPoolRawData = {
+  id: ID;
+  coin_type_a: MoveObject<MoveTypeName>;
+  coin_type_b: MoveObject<MoveTypeName>;
+  tick_spacing: number;
+  fee_rate: string;
+  liquidity: string;
+  current_sqrt_price: string;
+  current_tick_index: MoveObject<MoveInteger>;
+  fee_growth_global_a: string;
+  fee_growth_global_b: string;
+  fee_protocol_coin_a: string;
+  fee_protocol_coin_b: string;
+  is_pause: boolean;
+  rewarder_infos: MoveObject<RewardInfo>[];
+  rewarder_last_updated_time: string;
+};
+
+export type CetusPositionRawData = {
+  id: ID;
+  pool: string;
+  index: string;
+  pos_object_id: string;
+  coin_type_a: MoveObject<MoveTypeName>;
+  coin_type_b: MoveObject<MoveTypeName>;
+  name: string;
+  description: string;
+  url: string;
+  tick_lower_index: MoveObject<MoveInteger>;
+  tick_upper_index: MoveObject<MoveInteger>;
+  liquidity: string;
+};
