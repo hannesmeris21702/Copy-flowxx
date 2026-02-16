@@ -97,9 +97,21 @@ export class CetusPositionManager implements PositionManager {
         positionObject = tx.object(position.id);
       }
 
+      // Helper function to create coin from amount or use provided coin
+      const getCoinInput = (
+        providedCoin: TransactionArgument | undefined,
+        amount: string,
+        coinType: string
+      ): TransactionArgument => {
+        if (providedCoin) {
+          return providedCoin;
+        }
+        return tx.splitCoins(tx.gas, [tx.pure.u64(amount)])[0];
+      };
+
       const [coinAIn, coinBIn] = [
-        options.coinXIn ?? tx.splitCoins(tx.gas, [tx.pure.u64(amountXDesired.toString())]),
-        options.coinYIn ?? tx.splitCoins(tx.gas, [tx.pure.u64(amountYDesired.toString())]),
+        getCoinInput(options.coinXIn, amountXDesired.toString(), position.amountX.coin.coinType),
+        getCoinInput(options.coinYIn, amountYDesired.toString(), position.amountY.coin.coinType),
       ];
 
       const { packageId, globalConfigId } = CETUS_CONFIG;
@@ -206,7 +218,7 @@ export class CetusPositionManager implements PositionManager {
           tx.object(globalConfigId),
           tx.object(position.pool.id),
           tx.object(position.id),
-          tx.object(position.pool.id), // vault_index parameter
+          tx.pure.u64(0), // rewarder index - typically 0 for first reward pool
           tx.pure.bool(true), // collect_all parameter
           tx.object(SUI_CLOCK_OBJECT_ID),
         ],
