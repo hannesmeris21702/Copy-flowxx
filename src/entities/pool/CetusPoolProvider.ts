@@ -6,10 +6,10 @@ import { Pool } from "./Pool";
 import { jsonRpcProvider } from "../../utils/jsonRpcProvider";
 import { getToken } from "../../utils/tokenHelper";
 import { MAPPING_POOL_OBJECT_TYPE, TICK_INDEX_BITS } from "../../constants";
-import { FlowXV3PoolRawData } from "../../types";
+import { CetusPoolRawData } from "../../types";
 import { IPoolProvder } from "./IPoolProvder";
 
-export class FlowXV3PoolProvider implements IPoolProvder {
+export class CetusPoolProvider implements IPoolProvder {
   public async getPoolById(poolId: string): Promise<Pool> {
     const object = await jsonRpcProvider.getObject({
       id: poolId,
@@ -21,7 +21,10 @@ export class FlowXV3PoolProvider implements IPoolProvder {
     });
 
     invariant(
-      object.data && object.data.type.startsWith(MAPPING_POOL_OBJECT_TYPE[Protocol.FLOWX_V3]),
+      object.data &&
+        object.data.type.startsWith(
+          MAPPING_POOL_OBJECT_TYPE[Protocol.CETUS]
+        ),
       "invalid pool"
     );
 
@@ -29,17 +32,17 @@ export class FlowXV3PoolProvider implements IPoolProvder {
   }
 
   private async _fromObjectData(object: SuiObjectData): Promise<Pool> {
-    const rawData = object.content["fields"] as FlowXV3PoolRawData;
+    const rawData = object.content["fields"] as CetusPoolRawData;
 
     const tokens = await Promise.all([
-      getToken(`0x${rawData.coin_type_x.fields.name}`),
-      getToken(`0x${rawData.coin_type_y.fields.name}`),
+      getToken(`0x${rawData.coin_type_a.fields.name}`),
+      getToken(`0x${rawData.coin_type_b.fields.name}`),
     ]);
 
     const pool = new Pool({
       objectId: object.objectId,
       coins: tokens,
-      poolRewards: rawData.reward_infos.map((rewardInfo) => ({
+      poolRewards: rawData.rewarder_infos.map((rewardInfo) => ({
         coin: new Coin(`0x${rewardInfo.fields.reward_coin_type.fields.name}`),
         endedAtSeconds: Number(rewardInfo.fields.ended_at_seconds),
         lastUpdateTime: Number(rewardInfo.fields.last_update_time),
@@ -47,23 +50,25 @@ export class FlowXV3PoolProvider implements IPoolProvder {
         totalReward: rewardInfo.fields.total_reward,
         rewardGrowthGlobal: rewardInfo.fields.reward_growth_global,
       })),
-      reserves: [rawData.reserve_x, rawData.reserve_y],
-      fee: Number(rawData.swap_fee_rate),
-      sqrtPriceX64: rawData.sqrt_price,
+      reserves: [rawData.fee_protocol_coin_a, rawData.fee_protocol_coin_b],
+      fee: Number(rawData.fee_rate),
+      sqrtPriceX64: rawData.current_sqrt_price,
       tickCurrent: Number(
-        BigInt.asIntN(TICK_INDEX_BITS, BigInt(rawData.tick_index.fields.bits))
+        BigInt.asIntN(
+          TICK_INDEX_BITS,
+          BigInt(rawData.current_tick_index.fields.bits)
+        )
       ),
       liquidity: rawData.liquidity,
-      feeGrowthGlobalX: rawData.fee_growth_global_x,
-      feeGrowthGlobalY: rawData.fee_growth_global_y,
+      feeGrowthGlobalX: rawData.fee_growth_global_a,
+      feeGrowthGlobalY: rawData.fee_growth_global_b,
       tickDataProvider: new TickOnchainDataProvider({
         network: "mainnet",
-        tickManagerId: rawData.ticks.fields.id.id,
+        tickManagerId: object.objectId, // Cetus uses pool object itself for tick data
       }),
-      protocol: Protocol.FLOWX_V3,
+      protocol: Protocol.CETUS,
     });
 
     return pool;
   }
-
 }
